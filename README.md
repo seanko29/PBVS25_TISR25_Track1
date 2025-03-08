@@ -6,7 +6,7 @@
 ## Install
 Create a conda enviroment:
 ````
-ENV_NAME="seemore"
+ENV_NAME="tisr25"
 conda create -n $ENV_NAME python=3.10
 conda activate $ENV_NAME
 ````
@@ -16,7 +16,7 @@ bash install.sh
 ````
 
 ## Usage
-Pre-trained checkpoints and visual results can be downloaded [here](https://drive.google.com/drive/folders/15jtvcS4jL_6QqEwaRodEN8FBrqVPrO2u?usp=share_link). Place the checkpoints in `checkpoints/`.
+Pre-trained checkpoints and visual results can be downloaded [here](https://drive.google.com/drive/folders/1LlTDUD90Ua-ExBMTuT-0nMIHrGoc660r?usp=sharing). Place the checkpoints in `checkpoints/`.
 
 In `options` you can find the corresponding config files for reproducing our experiments.
 
