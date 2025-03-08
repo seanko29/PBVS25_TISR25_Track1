@@ -1,0 +1,131 @@
+# general settings
+name: finetune_hma_x4
+model_type: HMAModel
+scale: 4
+num_gpu: 1
+manual_seed: 10
+
+# dataset and data loader settings
+datasets:
+  train:
+    name: thermal_train_x4
+    type: PairedImageDataset
+    dataroot_gt: /path/to/HR
+    dataroot_lq: /path/to/LR
+    io_backend:
+      type: disk
+
+    gt_size: 256
+    use_hflip: true
+    use_rot: true
+
+    # data loader
+    use_shuffle: true
+    num_worker_per_gpu: 16
+    batch_size_per_gpu: 16
+    dataset_enlarge_ratio: 50
+    prefetch_mode: ~
+
+  val:
+    name: thermal_val_x4
+    type: PairedImageDataset
+    dataroot_gt: /thermal/val/GT
+    dataroot_lq: /thermal/val/LR
+    io_backend:
+      type: disk
+
+
+# network structures
+network_g:
+  type: HMANet
+  upscale: 4
+  in_chans: 3
+  img_size: 64
+  window_size: 16
+  compress_ratio: 3
+  squeeze_factor: 30
+  interval_size: 4
+  img_range: 1.
+  depths: [6, 6, 6, 6, 6, 6]
+  embed_dim: 180
+  num_heads: [6, 6, 6, 6, 6, 6]
+  mlp_ratio: 2
+  upsampler: 'pixelshuffle'
+  resi_connection: '1conv'
+
+# path
+path:
+  pretrain_network_g: /pretrained/HMA_SRx4_pretrain.pth
+  param_key_g: 'params_ema'
+  strict_load_g: false
+  resume_state: ~
+
+# training settings
+train:
+  ema_decay: 0.999
+  optim_g:
+    type: Adam
+    lr: !!float 1e-5
+    weight_decay: 0
+    betas: [0.9, 0.99]
+
+    
+  scheduler:
+    type: MultiStepLR
+    # milestones: [ 250000, 400000, 450000, 475000 ]
+    milestones: [ 125000, 200000, 225000, 237500 ]
+    gamma: 0.5
+
+  # total_iter: 500000
+  total_iter: 250000
+  warmup_iter: -1  # no warm up
+
+  # losses
+  pixel_opt:
+    type: L1Loss
+    loss_weight: 1.0
+    reduction: mean
+
+  fft_opt:
+    type: FFTLoss
+    loss_weight: 0.05
+    reduction: mean
+
+  ssim_opt:
+    type: SSIM
+    loss_weight: 0.05
+    window_size: 11
+    size_average: true
+    reduction: mean
+
+# validation settings
+val:
+  val_freq: !!float 1e3
+  save_img: false
+  pbar: False
+
+  metrics:
+    psnr:
+      type: calculate_psnr
+      crop_border: 4
+      test_y_channel: true
+      better: higher  # the higher, the better. Default: higher
+    ssim:
+      type: calculate_ssim
+      crop_border: 4
+      test_y_channel: true
+      better: higher  # the higher, the better. Default: higher
+
+# logging settings
+logger:
+  print_freq: 100
+  save_checkpoint_freq: !!float 5e3
+  use_tb_logger: true
+  wandb:
+    project: ~
+    resume_id: ~
+
+# dist training settings
+dist_params:
+  backend: nccl
+  port: 29500
